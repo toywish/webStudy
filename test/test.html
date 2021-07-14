@@ -1,25 +1,28 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js">
     </script>
     <script>
         i = 0;
-        $(document).ready(function(){
-            $("p").keypress(function(){
-                $("span").text(i+=1);
+        $(document).ready(function () {
+            $("p").keypress(function () {
+                $("span").text(i += 1);
             });
-            $("button").click(function(){
+            $("button").click(function () {
                 $("p").keypress();
             });
         });
 
     </script>
 </head>
+
 <body>
 
-<p>Keypresses: <span>0</span></p>
-<button>Trigger the keypress event</button>
+    <p>Keypresses: <span>0</span></p>
+    <button>Trigger the keypress event</button>
 
 </body>
+
 </html>
