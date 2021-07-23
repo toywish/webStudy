@@ -24,3 +24,5 @@ LC属性取值包含：1~12，字符串类型
 可编辑AP图层地址：
 https://192.168.137.113/server/rest/services/Hosted/20201123%E7%A9%BA%E7%99%BDAP%E5%9B%BE%E5%B1%82%E5%A7%9A%E5%88%9A%E7%94%A8/FeatureServer
 编辑：使用FeatureLayer中的applyEdits()方法
+根据某一属性的不同属性值渲染要素，可以通过UniqueValueRenderer来完成
+http://192.168.137.113/arcgis_js_api/sdk/4.18/latest/api-reference/esri-renderers-UniqueValueRenderer.html
