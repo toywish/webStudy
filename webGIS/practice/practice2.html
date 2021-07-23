@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      rel="stylesheet"
+      href="http://192.168.137.113/arcgis_js_api/library/4.18/esri/themes/light/main.css"
+    />
+    <script src="http://192.168.137.113/arcgis_js_api/library/4.18/init.js"></script>
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+    <script>
+      require([
+          "esri/Map",
+          "esri/MapView",
+          "esri/layers/FeatureLayer",
+          "esri/layers/GraphicsLayer"
+    ], function (Map,MapView,FeatureLayer,GraphicsLayer) {
+        var map=new Map({
+          basemap:""
+        });
+    });
+    </script>
+  </head>
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+</html>

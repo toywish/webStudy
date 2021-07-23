@@ -13,7 +13,6 @@
       href="http://192.168.137.113/arcgis_js_api/library/4.18/esri/themes/light/main.css"
     />
     <script src="http://192.168.137.113/arcgis_js_api/library/4.18/init.js"></script>
-    
 
     <style>
       html,
@@ -119,7 +118,6 @@
         var map = new Map({
           layers: [imageLayer],
         });
-
         var view = new MapView({
           container: "viewDiv",
           map: map,
@@ -141,6 +139,38 @@
           renderer: featureLayerRenderer, //渲染
           popupTemplate: {
             title: "AP",
+            content:[
+                {
+                    type:"fields",
+                    fieldInfos:[
+                    {
+                            fieldName:"OBJECTID",
+                            label:"OBJECTID",
+                            type:"oid"
+                        },{
+                            fieldName:"Shape",
+                            label:"Shape",
+                            type:"geometry"
+                        },{
+                            fieldName:"FWBM",
+                            label:"FWBM",
+                            type:"string"
+                        },{
+                            fieldName:"LC",
+                            label:"LC",
+                            type:"string"
+                        },{
+                            fieldName:"PointGUID",
+                            label:"PointGUID",
+                            type:"string"
+                        },{
+                            fieldName:"FJGUID",
+                            label:"FJGUID",
+                            type:"string"
+                        },
+                    ]
+                }
+            ]
           },
         });
 
