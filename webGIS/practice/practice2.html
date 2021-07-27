@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>practice2</title>
     <link
       rel="stylesheet"
       href="http://192.168.137.113/arcgis_js_api/library/4.18/esri/themes/light/main.css"
@@ -19,21 +19,119 @@
         height: 100%;
         width: 100%;
       }
+
+      #infoDiv {
+        background-color: white;
+        color: black;
+        padding: 15px;
+        width: 240px;
+      }
+
+      #drop-downs {
+        padding-bottom: 15px;
+      }
+
+      #results {
+        font-weight: bolder;
+        padding-top: 10px;
+      }
     </style>
     <script>
       require([
-          "esri/Map",
-          "esri/MapView",
-          "esri/layers/FeatureLayer",
-          "esri/layers/GraphicsLayer"
-    ], function (Map,MapView,FeatureLayer,GraphicsLayer) {
-        var map=new Map({
-          basemap:""
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/layers/MapImagelayer",
+        "esri/layers/GraphicsLayer",
+        "esri/tasks/QueryTask",
+        "esri/tasks/support/Query",
+      ], function (
+        Map,
+        MapView,
+        MapImageLayer,
+        GraphicsLayer,
+        QueryTask,
+        Query
+      ) {
+        var imageLayer = new MapImageLayer({
+          url: "http://192.168.137.113/server/rest/services/20210129二维矢量地图/MapServer",
         });
-    });
+        var queryTask = new QueryTask({
+          url: "http://192.168.137.113/server/rest/services/20200917AP点位/MapServer/0",
+        });
+        var resultsLayer = new GraphicsLayer();
+        var map = new Map({
+          //底图
+          //basemap:"osm",
+          layers: [imageLayer, resultsLayer],
+        });
+        var view = new MapView({
+          //视图
+          container: "viewDiv",
+          map: map,
+          zoom: 4,
+          scale: 16000,
+          center: [114.40776, 30.51415],
+        });
+
+        var att = document.getElementById("well-type");
+        //console.log(att.value);
+        var query = new Query();
+        query.returnGeometry = true;
+        query.outFields = ["*"];
+
+        view.when(function () {
+          view.ui.add("infoDiv", "top-left");
+          document.getElementById("doBtn").addEventListener("click", doQuery);
+        });
+        function doQuery() {
+          //执行查询
+          resultsLayer.removeAll(); //清空上次查询结果
+          query.where = "lc = '" + att.value + "'"; // 每次查询修改查询参数
+
+          queryTask.execute(query).then(getResults);
+        }
+        function getResults(res) {
+          //渲染查询到的结果
+          var peakResults = res.features.map(function (feature) {
+            //feature.symbol = apSymbol;
+            feature.symbol = {
+              type: "simple-marker", // autocasts as new PointSymbol3D()
+              size: 5,
+              color: "#ffff00",
+            };
+            return feature;
+          });
+          resultsLayer.addMany(peakResults);
+          document.getElementById("resultConut").innerHTML =
+            peakResults.length + "条结果！";
+        }
+      });
     </script>
   </head>
+
   <body>
     <div id="viewDiv"></div>
+    <div id="infoDiv" class="esri-widget">
+      <div id="drop-downs">
+        选择楼层
+        <select id="well-type" class="esri-widget">
+          <option value="">请选择</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+        </select>
+        <button id="doBtn" class="esri-widget">查询</button>
+        <p><span id="resultConut"></span></p>
+      </div>
+    </div>
   </body>
 </html>
