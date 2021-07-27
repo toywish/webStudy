@@ -1,155 +1,38 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="initial-scale=1,maximum-scale=1,user-scalable=no"
-    />
-    <title>test</title>
-
-    <link
-      rel="stylesheet"
-      href="http://192.168.137.113/arcgis_js_api/library/4.18/esri/themes/light/main.css"
-    />
-    <script src="http://192.168.137.113/arcgis_js_api/library/4.18/init.js"></script>
-    
-
+    <title>change demo</title>
     <style>
-      html,
-      body,
-      #viewDiv {
-        padding: 0;
-        margin: 0;
-        height: 100%;
-        width: 100%;
+      div {
+        color: red;
       }
     </style>
-
+    <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
     <script>
-      require([
-        "esri/Map",
-        "esri/views/MapView",
-        "esri/layers/MapImageLayer",
-        "esri/layers/FeatureLayer",
-      ], function (Map, MapView, MapImageLayer, FeatureLayer) {
-        var imagePopupTemplate = {
-          //设置popup弹出框
-          title: "建筑物",
-          content: [
-            {
-              type: "fields",
-              fieldInfos: [
-                {
-                  fieldName: "OBJECTID",
-                  label: "OBJECTID",
-                  type: "oid",
-                },
-                {
-                  fieldName: "SHAPE",
-                  label: "SHAPE",
-                  type: "geometry",
-                },
-                {
-                  fieldName: "GLID",
-                  label: "GLID",
-                  type: "string",
-                },
-                {
-                  fieldName: "SHAPE_Length",
-                  label: "SHAPE_Length",
-                  type: "double",
-                },
-                {
-                  fieldName: "SHAPE_Area",
-                  label: "SHAPE_Area",
-                  type: "double",
-                },
-                {
-                  fieldName: "JZWMC",
-                  label: "JZWMC",
-                  type: "string",
-                },
-                {
-                  fieldName: "JZWLX",
-                  label: "JZWLX",
-                  type: "string",
-                },
-              ],
-            },
-          ],
-        };
-        var imageLayer = new MapImageLayer({
-          url: "http://192.168.137.113/server/rest/services/20210129二维矢量地图/MapServer",
-          sublayers: [
-            {
-              id: 0,
-              popupTemplate: imagePopupTemplate,
-            },
-            {
-              id: 1,
-              popupTemplate: imagePopupTemplate,
-            },
-            {
-              id: 2,
-              popupTemplate: imagePopupTemplate,
-            },
-            {
-              id: 3,
-              popupTemplate: imagePopupTemplate,
-            },
-            {
-              id: 4,
-              popupTemplate: imagePopupTemplate,
-            },
-            {
-              id: 5,
-              popupTemplate: imagePopupTemplate,
-            },
-            {
-              id: 6,
-              popupTemplate: imagePopupTemplate,
-            },
-            {
-              id: 7,
-              popupTemplate: imagePopupTemplate,
-            },
-          ],
+      $(document).ready(function () {
+        $("#wellType").change(function () {
+          alert(1);
         });
-        var map = new Map({
-          layers: [imageLayer],
-        });
-
-        var view = new MapView({
-          container: "viewDiv",
-          map: map,
-          zoom: 4,
-          scale: 16000,
-          center: [114.40776, 30.51415],
-        });
-        var featureLayerRenderer = {
-          type: "simple",
-          symbol: {
-            type: "simple-marker",
-            color: "#ffff00",
-            size: 6,
-          },
-        };
-
-        var featureLayer = new FeatureLayer({
-          url: "http://192.168.137.113/server/rest/services/20200917AP点位/MapServer/0",
-          renderer: featureLayerRenderer, //渲染
-          popupTemplate: {
-            title: "AP",
-          },
-        });
-
-        map.add(featureLayer);
       });
     </script>
   </head>
-
   <body>
-    <div id="viewDiv"></div>
+    <select id="wellType" class="esri-widget">
+      <option value="">请选择</option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+      <option value="9">9</option>
+      <option value="10">10</option>
+      <option value="11">11</option>
+      <option value="12">12</option>
+    </select>
+    <div></div>
   </body>
 </html>
