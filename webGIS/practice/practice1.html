@@ -128,12 +128,88 @@
           center: [114.40776, 30.51415],
         });
         var featureLayerRenderer = {
-          type: "simple",
-          symbol: {
-            type: "simple-marker",
-            color: "#ffff00",
-            size: 6,
-          },
+          type: "unique-value",
+          field: "lc",
+          defaultSymbol: { type: "simple-marker", color: "white" },
+          uniqueValueInfos: [
+            {
+              value: "1",
+              symbol: {
+                type: "simple-marker",
+                color: "blue",
+              },
+            },
+            {
+              value: "2",
+              symbol: {
+                type: "simple-marker",
+                color: "pink",
+              },
+            },
+            {
+              value: "2",
+              symbol: {
+                type: "simple-marker",
+                color: "green",
+              },
+            },
+            {
+              value: "3",
+              symbol: {
+                type: "simple-marker",
+                color: "purple",
+              },
+            },
+            {
+              value: "4",
+              symbol: {
+                type: "simple-marker",
+                color: "red",
+              },
+            },
+            {
+              value: "5",
+              symbol: {
+                type: "simple-marker",
+                color: "orange",
+              },
+            },
+            {
+              value: "6",
+              symbol: {
+                type: "simple-marker",
+                color: "yellow",
+              },
+            },
+            {
+              value: "7",
+              symbol: {
+                type: "simple-marker",
+                color: "black",
+              },
+            },
+            {
+              value: "8",
+              symbol: {
+                type: "simple-marker",
+                color: "blue",
+              },
+            },
+            {
+              value: "9",
+              symbol: {
+                type: "simple-marker",
+                color: "brown",
+              },
+            },
+            {
+              value: "10",
+              symbol: {
+                type: "simple-marker",
+                color: "gray",
+              },
+            },
+          ],
         };
 
         var featureLayer = new FeatureLayer({

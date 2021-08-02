@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>
+      practice3
+    </title>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.18/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.18/"></script>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      #info {
+        padding: 14px;
+        border-radius: 5px;
+      }
+
+      #update {
+        padding: 6px;
+      }
+
+      #form {
+        background: #fff;
+      }
+
+      /* replaces esri-widget--panel */
+      .scroller {
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+    </style>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/widgets/FeatureForm",
+        "esri/layers/MapImageLayer",
+        "esri/layers/FeatureLayer",
+        "esri/form/FormTemplate",
+      ], function (
+        Map,
+        MapView,
+        FeatureForm,
+        MapImageLayer,
+        FeatureLayer,
+        FormTemplate
+      ) {
+        let highlight, editFeature;
+        var imageLayer = new MapImageLayer({
+          url: "http://192.168.137.113/server/rest/services/20210129二维矢量地图/MapServer",
+        });
+        const featureLayer = new FeatureLayer({
+          url: "https://192.168.137.113/server/rest/services/Hosted/20201123空白AP图层姚刚用/FeatureServer/1",
+          renderer: {
+            type: "simple",
+            symbol: {
+              type: "simple-marker",
+              color: "#ffff00",
+              size: 20,
+            },
+          },
+          outFields: ["*"],
+          formTemplate: {
+            // Autocasts to new FormTemplate
+            title: "修改属性",
+            description: "输入相应值以修改属性",
+            elements: [
+                  {
+                    // Autocasts to new FieldElement
+                    type: "field",
+                    fieldName: "fwbm",
+                    label: "-fwbm-",
+                  },
+                  {
+                    type: "field",
+                    fieldName: "lc",
+                    label: "-lc-",
+                  },
+                  {
+                    type: "field",
+                    fieldName: "pointguid",
+                    label: "-pointguid-",
+                  },
+                  {
+                    type: "field",
+                    fieldName: "fjguid",
+                    label: "-fjguid-",
+                  },
+                  {
+                    type: "field",
+                    fieldName: "flag",
+                    label: "-flag-",
+                  },
+                  
+                ],
+          }, // end of form template elements
+        });
+
+        const map = new Map({
+          layers: [imageLayer,featureLayer],
+        });
+
+        let view = new MapView({
+          map: map,
+          container: "viewDiv",
+          center: [114.40776, 30.51415],
+          zoom: 4,
+          scale: 16000,
+        });
+
+        // Add a new feature form with grouped fields
+        const form = new FeatureForm({
+          container: "form",
+          // groupDisplay: "sequential", // only display one group at a time
+          layer: featureLayer,
+        });
+
+        view.on("click", function (event) {
+          // Unselect any currently selected features
+          //console.log(event);
+          unselectFeature();
+          // Listen for when the user clicks on the view
+          view.hitTest(event).then(function (response) {
+            // If user selects a feature, select it
+            const results = response.results;
+            console.log(results);
+            if (
+              results.length > 0 &&
+              results[0].graphic &&
+              results[0].graphic.layer === featureLayer
+            ) {
+              selectFeature(
+                results[0].graphic.attributes[featureLayer.objectIdField]//将oid传入
+              );
+            } else {
+              //未选中则隐藏表单
+              document.getElementById("update").classList.add("esri-hidden");
+            }
+          });
+        });
+
+        // Function to unselect features
+        function unselectFeature() {
+          if (highlight) {
+            highlight.remove();
+          }
+        }
+
+        // Highlight the clicked feature and display
+        // its attributes in the featureform.
+        //在表单中展示点击的feature的field值
+        function selectFeature(objectId) {
+          // query feature from the server
+          featureLayer
+            .queryFeatures({
+              objectIds: [objectId],
+              outFields: ["*"],
+            })
+            .then(function (results) {
+              if (results.features.length > 0) {
+                editFeature = results.features[0];
+                console.log(editFeature);
+                // display the attributes of selected feature in the form
+                form.feature = editFeature;
+
+                // highlight the feature on the view
+                view
+                  .whenLayerView(editFeature.layer)
+                  .then(function (layerView) {
+                    highlight = layerView.highlight(editFeature);
+                  });
+
+                if (
+                  document
+                    .getElementById("update")
+                    .classList.contains("esri-hidden")
+                ) {
+                  document.getElementById("info").classList.add("esri-hidden");
+                  document
+                    .getElementById("update")
+                    .classList.remove("esri-hidden");
+                }
+              }
+            });
+        }
+
+        // Listen to the feature form's submit event.
+        form.on("submit", function () {
+          if (editFeature) {
+            // Grab updated attributes from the form.
+            const updated = form.getValues();
+
+            // Loop through updated attributes and assign
+            // the updated values to feature attributes.
+            Object.keys(updated).forEach(function (name) {
+              editFeature.attributes[name] = updated[name];
+            });
+
+            // Setup the applyEdits parameter with updates.
+            const edits = {
+              updateFeatures: [editFeature],
+            };
+            applyAttributeUpdates(edits);
+          }
+        });
+
+        // Call FeatureLayer.applyEdits() with specified params.
+        function applyAttributeUpdates(params) {
+          document.getElementById("btnUpdate").style.cursor = "progress";
+          featureLayer
+            .applyEdits(params)
+            .then(function (editsResult) {
+              // Get the objectId of the newly added feature.
+              // Call selectFeature function to highlight the new feature.
+              if (editsResult.addFeatureResults.length > 0) {
+                const objectId = editsResult.addFeatureResults[0].objectId;
+                selectFeature(objectId);
+              }
+              document.getElementById("btnUpdate").style.cursor = "pointer";
+            })
+            .catch(function (error) {
+              console.log("===============================================");
+              console.error(
+                "[ applyEdits ] FAILURE: ",
+                error.code,
+                error.name,
+                error.message
+              );
+              console.log("error = ", error);
+              document.getElementById("btnUpdate").style.cursor = "pointer";
+            });
+        }
+
+        document.getElementById("btnUpdate").onclick = function () {
+          // Fires feature form's submit event.
+          form.submit();
+        };
+
+        view.ui.add("update", "top-left");
+        view.ui.add("info", {
+          position: "top-left",
+          index: 1,
+        });
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+    <div id="info" class="esri-widget">
+      <h3>Select a feature to begin editing</h3>
+    </div>
+
+    <div id="update" class="esri-widget esri-hidden">
+      <div id="form" class="scroller esri-component"></div>
+      <input
+        type="button"
+        class="esri-button"
+        value="修改属性"
+        id="btnUpdate"
+      />
+    </div>
+  </body>
+</html>

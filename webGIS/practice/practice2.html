@@ -9,7 +9,6 @@
       rel="stylesheet"
       href="http://192.168.137.113/arcgis_js_api/library/4.18/esri/themes/light/main.css"
     />
-    <script src="../js/jquery-3.6.0.min.js"></script>
     <script src="http://192.168.137.113/arcgis_js_api/library/4.18/init.js"></script>
     <style>
       html,
@@ -25,7 +24,7 @@
         background-color: white;
         color: black;
         padding: 15px;
-        width: 240px;
+        width: 330px;
       }
 
       #dropDowns {
@@ -36,6 +35,15 @@
         font-weight: bolder;
         padding-top: 10px;
       }
+
+      #formDiv {
+        width: 100%;
+        background: #fff;
+      }
+      .scroller {
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
     </style>
     <script>
       require([
@@ -43,27 +51,35 @@
         "esri/views/MapView",
         "esri/layers/MapImagelayer",
         "esri/layers/GraphicsLayer",
+        "esri/layers/FeatureLayer",
         "esri/tasks/QueryTask",
         "esri/tasks/support/Query",
+        "esri/widgets/FeatureTemplates",
+        "esri/widgets/FeatureForm",
+        "esri/widgets/FeatureTemplates",
       ], function (
         Map,
         MapView,
         MapImageLayer,
         GraphicsLayer,
+        FeatureLayer,
         QueryTask,
-        Query
+        Query,
+        FeatureTemplates,
+        FeatureForm,
+        FeatureTemplates
       ) {
         var imageLayer = new MapImageLayer({
           url: "http://192.168.137.113/server/rest/services/20210129二维矢量地图/MapServer",
         });
-        var queryTask = new QueryTask({
+        var featureLayer = new FeatureLayer({
           url: "http://192.168.137.113/server/rest/services/20200917AP点位/MapServer/0",
         });
         var resultsLayer = new GraphicsLayer();
+
         var map = new Map({
           //底图
-          //basemap:"osm",
-          layers: [imageLayer, resultsLayer],
+          layers: [imageLayer, featureLayer, resultsLayer],
         });
         var view = new MapView({
           //视图
@@ -73,41 +89,119 @@
           scale: 16000,
           center: [114.40776, 30.51415],
         });
-        //console.log(att.value);
-        var query = new Query();
-        query.returnGeometry = true;
-        query.outFields = ["*"];
-
         view.when(function () {
           view.ui.add("infoDiv", "top-left");
-          //document.getElementById("doBtn").addEventListener("click", doQuery);
+          document
+            .getElementById("wellType")
+            .addEventListener("change", apQuery);
+          document
+            .getElementById("doBtn")
+            .addEventListener("click", pointsQueryTask);
+          document
+            .getElementById("testPoint")
+            .addEventListener("click", function () {
+              document.getElementById("pointQuery").value =
+                "EC0B323AD70C41D3AF9D5F103E364107";
+            });
+          document
+            .getElementById("testPoint2")
+            .addEventListener("click", function () {
+              document.getElementById("pointQuery").value =
+                "E248B03DF7704FFF81DFB2A85B1EF8DE";
+            });
         });
-        var att = document.getElementById("wellType");
-        function doQuery() {
-          //执行查询
-          resultsLayer.removeAll(); //清空上次查询结果
-          query.where = "lc = '" + att.value + "'"; // 每次查询修改查询参数
+        //2.根据AP图层的LC（楼层）属性，显示不同楼层的AP点位；通过下拉框选择楼层
+        function apQuery() {
+          let att = document.getElementById("wellType");
+          featureLayer.definitionExpression = "lc = '" + att.value + "'";
 
-          queryTask.execute(query).then(getResults);
+          featureLayer.queryFeatures().then(function (results) {
+            //执行查询展示搜索结果数量
+            console.log(results.declaredClass);
+            let apCount = results.features.length;
+            //展示结果数量
+            document.getElementById("apResultConut").innerHTML =
+              apCount + "条结果";
+          });
         }
-        function getResults(res) {
-          //渲染查询到的结果
-          var peakResults = res.features.map(function (feature) {
-            //feature.symbol = apSymbol;
+
+        //3.根据PointGUID属性，查询对应的AP，并进行跳转
+        var query = new Query({
+          returnGeometry: true,
+          outFields: ["*"],
+        });
+        function pointsQueryTask() {
+          resultsLayer.removeAll(); //清空上次查询
+          let pointAtt = document.getElementById("pointQuery");
+          query.where = "pointGUID = '" + pointAtt.value + "'";
+          query.outSpatialReference = view.spatialReference; //
+          let queryTask = new QueryTask({
+            url: "http://192.168.137.113/server/rest/services/20200917AP点位/MapServer/0",
+          });
+          queryTask.execute(query).then(getPointResults); //执行查询
+        }
+        function getPointResults(res) {
+          let pointResults = res.features.map(function (feature) {
             feature.symbol = {
-              type: "simple-marker", // autocasts as new PointSymbol3D()
-              size: 5,
-              color: "#ffff00",
+              //渲染
+              type: "simple-marker",
+              size: 10,
+              color: "red",
+            };
+            feature.popupTemplate = {
+              //设置弹窗
+              title: "AP",
+              content: [
+                {
+                  type: "fields",
+                  fieldInfos: [
+                    {
+                      fieldName: "OBJECTID",
+                      label: "xxx",
+                      type: "oid",
+                    },
+                    {
+                      fieldName: "Shape",
+                      label: "Shape",
+                      type: "geometry",
+                    },
+                    {
+                      fieldName: "FWBM",
+                      label: "FWBM",
+                      type: "string",
+                    },
+                    {
+                      fieldName: "LC",
+                      label: "LC",
+                      type: "string",
+                    },
+                    {
+                      fieldName: "PointGUID",
+                      label: "PointGUID",
+                      type: "string",
+                    },
+                    {
+                      fieldName: "FJGUID",
+                      label: "FJGUID",
+                      type: "string",
+                    },
+                  ],
+                },
+              ],
             };
             return feature;
           });
-          resultsLayer.addMany(peakResults);
-          document.getElementById("resultConut").innerHTML =
-            peakResults.length + "条结果！";
+          resultsLayer.addMany(pointResults);
+          //console.log(pointResults[0].declaredClass);
+          console.log(view);
+          console.log(res.features);
+          view.goTo(res.features).catch(function (error) {
+            if (error.name != "AbortError") {
+              alert.error(error);
+            }
+          });
         }
-        $(document).ready(function () {
-          $("#wellType").change(doQuery);
-        });
+        
       });
     </script>
   </head>
@@ -132,9 +226,21 @@
           <option value="11">11</option>
           <option value="12">12</option>
         </select>
-        <!-- <button id="doBtn" class="esri-widget">查询</button> -->
-        <p><span id="resultConut"></span></p>
+        <span id="apResultConut"></span>
       </div>
+      <div>
+        <div id="pointQueryDiv">
+          <input id="pointQuery" type="text" placeholder="请输入pointGUID" />
+          <button id="doBtn" class="esri-widget">查询</button>
+        </div>
+        <div>
+          <button id="testPoint">测试点1</button>
+          <button id="testPoint2">测试点2</button>
+          <span id="copyResult"></span>
+        </div>
+      </div>
+      <p></p>
     </div>
+    
   </body>
 </html>
