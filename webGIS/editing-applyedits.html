@@ -7,7 +7,8 @@
       content="initial-scale=1,maximum-scale=1,user-scalable=no"
     />
     <title>
-      practice3
+      Update FeatureLayer using applyEdits() | Sample | ArcGIS API for
+      JavaScript 4.18
     </title>
 
     <link
@@ -90,16 +91,14 @@
       require([
         "esri/Map",
         "esri/views/MapView",
-        "esri/layers/MapImageLayer",
         "esri/layers/FeatureLayer",
         "esri/Graphic",
         "esri/widgets/Expand",
         "esri/widgets/FeatureForm",
-        "esri/widgets/FeatureTemplates",
+        "esri/widgets/FeatureTemplates"
       ], function (
         Map,
         MapView,
-        MapImageLayer,
         FeatureLayer,
         Graphic,
         Expand,
@@ -107,80 +106,42 @@
         FeatureTemplates
       ) {
         let editFeature, highlight;
-        var imageLayer = new MapImageLayer({
-          url: "http://192.168.137.113/server/rest/services/20210129二维矢量地图/MapServer",
-        });
-        const blankFeatureLayer = new FeatureLayer({
-          url: "http://192.168.137.113/server/rest/services/Hosted/20201123空白AP图层姚刚用/FeatureServer/1",
+
+        const featureLayer = new FeatureLayer({
+          url:
+            "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/IncidentsReport/FeatureServer/0",
           outFields: ["*"],
-          id: "incidentsLayer",
-          renderer: {
-            type: "simple",
-            symbol: {
-              type: "simple-marker",
-              color: "#ffff00",
-              size: 15,
-            },
-          },
-          formTemplate: {
-            title: "修改属性",
-            description: "输入相应值以修改属性",
-            elements: [
-              {
-                // Autocasts to new FieldElement
-                type: "field",
-                fieldName: "fwbm",
-                label: "-fwbm-",
-              },
-              {
-                type: "field",
-                fieldName: "lc",
-                label: "-lc-",
-              },
-              {
-                type: "field",
-                fieldName: "flag",
-                label: "-flag-",
-              },
-            ],
-          },
+          popupEnabled: false,
+          id: "incidentsLayer"
         });
 
         const map = new Map({
-          layers: [imageLayer, blankFeatureLayer],
+          basemap: "dark-gray-vector",
+          layers: [featureLayer]
         });
 
         const view = new MapView({
           container: "viewDiv",
           map: map,
-          center: [114.40776, 30.51415],
-          zoom: 14,
-          scale: 16000,
+          center: [-117.18, 34.06],
+          zoom: 14
         });
 
         // New FeatureForm and set its layer to 'Incidents' FeatureLayer.
         // FeatureForm displays attributes of fields specified in fieldConfig.
         const featureForm = new FeatureForm({
           container: "formDiv",
-          layer: blankFeatureLayer,
-          elements: [
+          layer: featureLayer,
+          fieldConfig: [
             {
-              // Autocasts to new FieldElement
-              type: "field",
-              fieldName: "fwbm",
-              label: "-fwbm-",
+              name: "IncidentType",
+              label: "Choose incident type"
             },
             {
-              type: "field",
-              fieldName: "lc",
-              label: "-lc-",
-            },
-            {
-              type: "field",
-              fieldName: "flag",
-              label: "-flag-",
-            },
-          ],
+              name: "IncidentDescription",
+              label: "Describe the problem"
+            }
+          ]
         });
 
         // Listen to the feature form's submit event.
@@ -198,7 +159,7 @@
 
             // Setup the applyEdits parameter with updates.
             const edits = {
-              updateFeatures: [editFeature],
+              updateFeatures: [editFeature]
             };
             applyEditsToIncidents(edits);
             document.getElementById("viewDiv").style.cursor = "auto";
@@ -212,17 +173,15 @@
         // element to display feature templates from incidentsLayer
         const templates = new FeatureTemplates({
           container: "addTemplatesDiv",
-          layers: [blankFeatureLayer],
+          layers: [featureLayer]
         });
-        // console.log(templates.declaredClass);
-        // console.log(templates.layers);
+
         // Listen for when a template item is selected
         templates.on("select", function (evtTemplate) {
           // Access the template item's attributes from the event's
           // template prototype.
           attributes = evtTemplate.template.prototype.attributes;
           unselectFeature();
-          // console.log(JSON.stringify(attributes));
           document.getElementById("viewDiv").style.cursor = "crosshair";
 
           // With the selected template item, listen for the view's click event and create feature
@@ -240,17 +199,16 @@
 
               // Create a new feature using one of the selected
               // template items.
-              console.log(attributes.IncidentType);
               editFeature = new Graphic({
                 geometry: point,
                 attributes: {
-                  IncidentType: attributes.IncidentType,
-                },
+                  IncidentType: attributes.IncidentType
+                }
               });
 
               // Setup the applyEdits parameter with adds.
               const edits = {
-                addFeatures: [editFeature],
+                addFeatures: [editFeature]
               };
               applyEditsToIncidents(edits);
               document.getElementById("viewDiv").style.cursor = "auto";
@@ -259,48 +217,11 @@
             }
           });
         });
-        // function evt(){
-        //   unselectFeature();
 
-        //   document.getElementById("viewDiv").style.cursor = "crosshair";
-
-        //   // With the selected template item, listen for the view's click event and create feature
-        //   const handler = view.on("click", function (event) {
-        //     // remove click event handler once user clicks on the view
-        //     // to create a new feature
-        //     handler.remove();
-        //     event.stopPropagation();
-        //     featureForm.feature = null;
-
-        //     if (event.mapPoint) {
-        //       point = event.mapPoint.clone();
-        //       point.z = undefined;
-        //       point.hasZ = false;
-
-        //       // Create a new feature using one of the selected
-        //       // template items.
-        //       editFeature = new Graphic({
-        //         geometry: point,
-        //         attributes: {
-        //           IncidentType: attributes.IncidentType,
-        //         },
-        //       });
-
-        //       // Setup the applyEdits parameter with adds.
-        //       const edits = {
-        //         addFeatures: [editFeature],
-        //       };
-        //       applyEditsToIncidents(edits);
-        //       document.getElementById("viewDiv").style.cursor = "auto";
-        //     } else {
-        //       console.error("event.mapPoint is not defined");
-        //     }
-        //   });
-        // }
         // Call FeatureLayer.applyEdits() with specified params.
         function applyEditsToIncidents(params) {
           // unselectFeature();
-          blankFeatureLayer
+          featureLayer
             .applyEdits(params)
             .then(function (editsResult) {
               // Get the objectId of the newly added feature.
@@ -360,7 +281,7 @@
                   }
                   selectFeature(
                     response.results[0].graphic.attributes[
-                    blankFeatureLayer.objectIdField
+                      featureLayer.objectIdField
                     ]
                   );
                 }
@@ -373,11 +294,11 @@
         // the feature form with the incident's attributes.
         function selectFeature(objectId) {
           // query feature from the server
-          blankFeatureLayer
+          featureLayer
             .queryFeatures({
               objectIds: [objectId],
               outFields: ["*"],
-              returnGeometry: true,
+              returnGeometry: true
             })
             .then(function (results) {
               if (results.features.length > 0) {
@@ -395,7 +316,17 @@
               }
             });
         }
-         view.ui.add("editArea", "top-right");
+
+        // Expand widget for the editArea div.
+        const editExpand = new Expand({
+          expandIconClass: "esri-icon-edit",
+          expandTooltip: "Expand Edit",
+          expanded: true,
+          view: view,
+          content: document.getElementById("editArea")
+        });
+
+        view.ui.add(editExpand, "top-right");
         // input boxes for the attribute editing
         const addFeatureDiv = document.getElementById("addFeatureDiv");
         const attributeEditing = document.getElementById("featureUpdateDiv");
@@ -404,6 +335,10 @@
         function toggleEditingDivs(addDiv, attributesDiv) {
           addFeatureDiv.style.display = addDiv;
           attributeEditing.style.display = attributesDiv;
+
+          document.getElementById(
+            "updateInstructionDiv"
+          ).style.display = addDiv;
         }
 
         // Remove the feature highlight and remove attributes
@@ -413,7 +348,7 @@
             highlight.remove();
           }
         }
-        //document.getElementById("btnAdd").onclick=evt;
+
         // Update attributes of the selected feature.
         document.getElementById("btnUpdate").onclick = function () {
           // Fires feature form's submit event.
@@ -425,7 +360,7 @@
         document.getElementById("btnDelete").onclick = function () {
           // setup the applyEdits parameter with deletes.
           const edits = {
-            deleteFeatures: [editFeature],
+            deleteFeatures: [editFeature]
           };
           applyEditsToIncidents(edits);
           document.getElementById("viewDiv").style.cursor = "auto";
@@ -435,28 +370,26 @@
   </head>
 
   <body>
-    <div id="viewDiv"></div>
     <div id="editArea" class="editArea-container esri-widget--panel">
       <div id="addFeatureDiv" style="display: block">
-
-        <ul style="font-size: 15px; padding-left: 1.5em">
-          <li>选择过滤器类型以添加新要素</li>
-          <li>选择已有要素进行修改</li>
-          <li>选择已有要素进行删除</li>
-
+        <h3 class="list-heading">Report Incidents</h3>
+        <ul style="font-size: 13px; padding-left: 1.5em">
+          <li>Select template from the list</li>
+          <li>Click on the map to create a new feature</li>
+          <li>Update associated attribute data</li>
+          <li>Click <i>Update Incident Info</i></li>
         </ul>
-        <button id="btnAdd" class="esri-button">添加要素</button>
         <div id="addTemplatesDiv" style="background: #fff"></div>
       </div>
 
       <div id="featureUpdateDiv" style="display: none; margin-top: 1em">
-
+        <h3 class="list-heading">Enter the incident information</h3>
         <div id="attributeArea">
           <div id="formDiv"></div>
           <input
             type="button"
             class="esri-button"
-            value="更新要素"
+            value="Update incident info"
             id="btnUpdate"
           />
         </div>
@@ -465,13 +398,17 @@
           <input
             type="button"
             class="esri-button"
-            value="删除要素"
+            value="Delete incident"
             id="btnDelete"
           />
         </div>
       </div>
 
+      <div id="updateInstructionDiv" style="text-align: center; display: block">
+        <p class="or-wrap"><span class="or-text">Or</span></p>
+        <p id="selectHeader">Select an incident to edit or delete.</p>
+      </div>
     </div>
-    
+    <div id="viewDiv"></div>
   </body>
 </html>
