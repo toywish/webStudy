@@ -260,6 +260,7 @@
           container: "addTemplatesDiv",
           layers: [blankFeatureLayer],
         });
+        // 添加feature
         templates.on("select", function (evtTemplate) {
           attributes = evtTemplate.template.prototype.attributes;
           unselectFeature();
@@ -296,7 +297,7 @@
             }
           });
         });
-        // 执行属性修改
+        // 执行要素修改
         function applyEditsAttributes(params) {
           blankFeatureLayer
             .applyEdits(params)
@@ -332,7 +333,7 @@
               console.log("error = ", error);
             });
         }
-
+        // 选择存在的feature
         function selectExistingFeature() {
           view.on("click", function (event) {
             // clear previous feature selection
@@ -397,7 +398,7 @@
 
           attributeEditing.style.display = attributesDiv;
         }
-        //document.getElementById("btnAdd").onclick = evt;
+        
         // 修改feature
         document.getElementById("btnUpdate").onclick = function () {
           form.submit();
